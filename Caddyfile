@@ -36,3 +36,7 @@
 
 	reverse_proxy http://web:5000
 }
+
+glitchtip.deeznuts.icu {
+	reverse_proxy http://glitchtip-web-1:8000
+}
