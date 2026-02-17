@@ -6,7 +6,7 @@ services:
     image: docker.io/mongo
     restart: always
     volumes:
-      - /mnt/mongo-encrypted:/data/db
+      - ./data/db:/data/db
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
