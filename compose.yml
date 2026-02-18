@@ -104,7 +104,7 @@ services:
 
   # Web App
   web:
-    image: ghcr.io/revoltchat/client:master
+    image: ghcr.io/dollysods/for-web:latest
     restart: always
     environment:
       - REVOLT_PUBLIC_URL=https://deeznuts.icu
