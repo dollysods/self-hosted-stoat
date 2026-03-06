@@ -1,4 +1,4 @@
-{$HOSTNAME} {
+deeznuts.icu {
 	route /api* {
 		uri strip_prefix /api
 		reverse_proxy http://api:14702 {
@@ -37,6 +37,34 @@
 	reverse_proxy http://web:5000
 }
 
-glitchtip.deeznuts.icu {
-	reverse_proxy http://glitchtip-web-1:8000
+dev.deeznuts.icu {
+	route /api* {
+		uri strip_prefix /api
+		reverse_proxy http://172.17.0.1:24702 {
+			header_down Location "^/" "/api/"
+		}
+	}
+
+	route /ws {
+		uri strip_prefix /ws
+		reverse_proxy http://172.17.0.1:24703 {
+			header_down Location "^/" "/ws/"
+		}
+	}
+
+	route /autumn* {
+		uri strip_prefix /autumn
+		reverse_proxy http://172.17.0.1:24704 {
+			header_down Location "^/" "/autumn/"
+		}
+	}
+
+	route /january* {
+		uri strip_prefix /january
+		reverse_proxy http://172.17.0.1:24705 {
+			header_down Location "^/" "/january/"
+		}
+	}
+
+	reverse_proxy http://172.17.0.1:25000
 }

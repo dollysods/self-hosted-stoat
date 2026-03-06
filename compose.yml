@@ -1,25 +1,22 @@
 name: stoat
 
 services:
-  # MongoDB: Database
   database:
-    image: docker.io/mongo
+    image: docker.io/mongo:5
     restart: always
     volumes:
       - ./data/db:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 10s
 
-  # Redis: Event message broker & KV store
   redis:
     image: docker.io/eqalpha/keydb
     restart: always
 
-  # RabbitMQ: Internal message broker
   rabbit:
     image: docker.io/rabbitmq:4
     restart: always
@@ -29,13 +26,12 @@ services:
     volumes:
       - ./data/rabbit:/var/lib/rabbitmq
     healthcheck:
-      test: rabbitmq-diagnostics -q check_port_connectivity
+      test: rabbitmq-diagnostics -q ping
       interval: 10s
       timeout: 10s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 20s
 
-  # MinIO: S3-compatible storage server
   minio:
     image: docker.io/minio/minio
     command: server /data
@@ -57,7 +53,6 @@ services:
           - emojis.minio
     restart: always
 
-  # Caddy: Web server
   caddy:
     image: docker.io/caddy
     restart: always
@@ -70,25 +65,8 @@ services:
       - ./data/caddy-data:/data
       - ./data/caddy-config:/config
 
-  # API server
   api:
-    image: revolt-server-patched:latest
-    depends_on:
-      database:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      rabbit:
-        condition: service_healthy
-    volumes:
-      - type: bind
-        source: /root/stoat/Revolt.toml
-        target: /Revolt.toml
-    restart: always
-
-  # Events service
-  events:
-    image: ghcr.io/revoltchat/bonfire:20250930-2
+    image: ghcr.io/stoatchat/api:v0.11.1
     depends_on:
       database:
         condition: service_healthy
@@ -102,17 +80,26 @@ services:
         target: /Revolt.toml
     restart: always
 
-  # Web App
-  web:
-    image: ghcr.io/revoltchat/client:master
+  events:
+    image: ghcr.io/stoatchat/events:v0.11.1
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - type: bind
+        source: ./Revolt.toml
+        target: /Revolt.toml
     restart: always
-    environment:
-      - REVOLT_PUBLIC_URL=https://deeznuts.icu
-      - REVOLT_API_URL=https://deeznuts.icu/api
 
-  # File server
+  web:
+    image: stoat-web:notifications-v2
+    restart: always
+    env_file: .env.web
+
   autumn:
-    image: ghcr.io/revoltchat/autumn:20250930-2
+    image: ghcr.io/stoatchat/file-server:v0.11.1
     depends_on:
       database:
         condition: service_healthy
@@ -124,27 +111,24 @@ services:
         target: /Revolt.toml
     restart: always
 
-  # Metadata and image proxy
   january:
-    image: ghcr.io/revoltchat/january:20250930-2
+    image: ghcr.io/stoatchat/proxy:v0.11.1
     volumes:
       - type: bind
         source: ./Revolt.toml
         target: /Revolt.toml
     restart: always
 
-  # Tenor proxy
   gifbox:
-    image: ghcr.io/revoltchat/gifbox:20250930-2
+    image: ghcr.io/stoatchat/gifbox:v0.11.1
     volumes:
       - type: bind
         source: ./Revolt.toml
         target: /Revolt.toml
     restart: always
 
-  # Regular task daemon
   crond:
-    image: ghcr.io/revoltchat/crond:20250930-2
+    image: ghcr.io/stoatchat/crond:v0.11.1
     depends_on:
       database:
         condition: service_healthy
@@ -156,9 +140,8 @@ services:
         target: /Revolt.toml
     restart: always
 
-  # Push notification daemon
   pushd:
-    image: ghcr.io/revoltchat/pushd:20250930-2
+    image: ghcr.io/stoatchat/pushd:v0.11.1
     depends_on:
       database:
         condition: service_healthy
@@ -170,10 +153,8 @@ services:
       - type: bind
         source: ./Revolt.toml
         target: /Revolt.toml
-      - ./firebase-key.json:/firebase-key.json:ro
     restart: always
 
-  # Create buckets for minio.
   createbuckets:
     image: docker.io/minio/mc
     depends_on:

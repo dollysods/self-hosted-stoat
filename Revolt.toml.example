@@ -1,0 +1,63 @@
+# Revolt.toml - Server Configuration
+# Copy this to Revolt.toml and fill in your values
+
+production = true
+
+[database]
+mongodb = "mongodb://database:27017/?directConnection=true"
+redis = "redis://redis/"
+
+[hosts]
+app = "https://your-domain.com"
+api = "https://your-domain.com/api"
+events = "wss://your-domain.com/ws"
+autumn = "https://your-domain.com/autumn"
+january = "https://your-domain.com/january"
+
+# Web push notifications (VAPID)
+# Generate with: npx web-push generate-vapid-keys
+[pushd.vapid]
+private_key = "YOUR_VAPID_PRIVATE_KEY_BASE64"
+public_key = "YOUR_VAPID_PUBLIC_KEY"
+
+# File encryption
+[files]
+encryption_key = "YOUR_32_BYTE_BASE64_KEY"
+
+[api]
+
+[api.registration]
+invite_only = false
+
+# Email (optional, for verification/password reset)
+[api.smtp]
+host = "smtp.example.com"
+username = "your-username"
+password = "YOUR_SMTP_PASSWORD"
+from_address = "noreply@your-domain.com"
+port = 465
+use_tls = true
+
+# Firebase Cloud Messaging (optional, for mobile push)
+[pushd.fcm]
+queue = "notifications.outbound.fcm"
+key_type = "service_account"
+project_id = "your-firebase-project"
+private_key_id = "YOUR_KEY_ID"
+private_key = """-----BEGIN PRIVATE KEY-----
+YOUR_FIREBASE_PRIVATE_KEY
+-----END PRIVATE KEY-----
+"""
+client_email = "firebase-adminsdk@your-project.iam.gserviceaccount.com"
+client_id = "YOUR_CLIENT_ID"
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account"
+
+# RabbitMQ
+[rabbit]
+host = "rabbit"
+port = 5672
+username = "rabbituser"
+password = "rabbitpass"
